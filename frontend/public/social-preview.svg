@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#f7fafc"/>
+  <circle cx="930" cy="160" r="220" fill="#e8f5ee"/>
+  <circle cx="965" cy="175" r="135" fill="none" stroke="#123e6e" stroke-width="12" opacity=".22"/>
+  <rect x="82" y="90" width="720" height="450" rx="28" fill="#0b2545"/>
+  <text x="130" y="205" font-size="68" font-family="Arial, sans-serif" font-weight="800" fill="#fff">VIKSIT BHARAT</text>
+  <text x="130" y="292" font-size="86" font-family="Arial, sans-serif" font-weight="800" fill="#f59e42">2047 AI</text>
+  <text x="130" y="374" font-size="38" font-family="Arial, sans-serif" fill="#dbeafe">Your Vision. India's Future.</text>
+  <text x="130" y="450" font-size="34" font-family="Arial, sans-serif" fill="#d1fae5">Imagine. Contribute. Build the Future.</text>
+</svg>
+
