@@ -465,7 +465,6 @@ export function VisionCard({ card, name, language, t }: Props) {
       {shareOpen && shareReady ? (
         <ShareModal
           name={displayName}
-          quote={quote}
           shareUrl={shareReady.url}
           imageUrl={shareReady.imageUrl}
           pngBlob={shareReady.pngBlob}

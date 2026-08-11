@@ -6,7 +6,6 @@ export type ShareMode = "share" | "challenge";
 
 type Props = {
   name: string;
-  quote: string;
   shareUrl: string;
   imageUrl: string;
   pngBlob: Blob | null;
@@ -18,7 +17,6 @@ type Props = {
 
 export function ShareModal({
   name,
-  quote,
   shareUrl,
   imageUrl,
   pngBlob,
@@ -111,7 +109,7 @@ export function ShareModal({
             <button type="button" className="share-btn" onClick={() => copy("link")}>
               <Link2 size={16} /> {copied === "link" ? t.copied : t.copyLink}
             </button>
-            {navigator.share ? (
+            {typeof navigator.share === "function" ? (
               <button type="button" className="share-btn share-btn-primary" onClick={webShare}>
                 <Share2 size={16} /> {t.webShare}
               </button>

@@ -1,6 +1,6 @@
 import type { PublicCard, PulseSummary, VisionResponse } from "../types/api";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 
 export const languages = [
   { code: "en", name: "English", voice: "en-IN" },

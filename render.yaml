@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: viksit-bharat-2047-ai
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/v1/health
+    autoDeploy: true
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash
+      - key: FRONTEND_ORIGIN
+        sync: false
+      - key: PUBLIC_BASE_URL
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false
