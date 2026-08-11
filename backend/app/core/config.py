@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     frontend_origin: str = "http://localhost:5173"
     gemini_api_key: str = ""
     gemini_model: str = "gemini-2.5-flash"
-    rate_limit_per_hour: int = 10
+    rate_limit_per_day: int = 10
     max_question_chars: int = 800
     cache_ttl_seconds: int = 86400
     database_url: str = "sqlite:///./data/pulse.db"

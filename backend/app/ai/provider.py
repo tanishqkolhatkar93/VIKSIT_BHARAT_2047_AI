@@ -129,6 +129,47 @@ class GeminiProvider(AIProvider):
         self.api_key = api_key
         self.model = model
 
+    async def test_connection(self) -> dict[str, str | bool]:
+        endpoint = f"https://generativelanguage.googleapis.com/v1beta/models?key={self.api_key}"
+        try:
+            async with httpx.AsyncClient(timeout=20) as client:
+                response = await client.get(endpoint)
+        except httpx.TransportError:
+            return {"connected": False, "message": "Network error. Could not reach the Gemini API. Check your internet connection."}
+
+        if response.status_code in {400, 401, 403}:
+            return {
+                "connected": False,
+                "message": "Invalid API key. Double-check the key on your Google AI Studio account.",
+            }
+        if response.status_code == 429:
+            return {
+                "connected": False,
+                "message": "This API key's free quota is exhausted right now. Try again later or check your quota in Google AI Studio.",
+            }
+        if response.status_code >= 500:
+            return {
+                "connected": False,
+                "message": "The Gemini API is temporarily unavailable. Please try again shortly.",
+            }
+
+        try:
+            data = response.json()
+            models = [m.get("name", "") for m in data.get("models", [])]
+        except Exception:
+            return {"connected": False, "message": "Unexpected response from the Gemini API. Please try again."}
+
+        if not models:
+            return {"connected": False, "message": "The Gemini API accepted the key but returned no available models."}
+
+        requested = f"models/{self.model}"
+        active = requested if requested in models else models[0]
+        return {
+            "connected": True,
+            "model": active.replace("models/", ""),
+            "message": "API key is valid and connected.",
+        }
+
     async def generate(
         self,
         question: str,

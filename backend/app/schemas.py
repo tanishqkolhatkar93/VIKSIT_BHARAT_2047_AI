@@ -16,6 +16,18 @@ class VisionRequest(BaseModel):
     language: str = Field(default="en", min_length=2, max_length=5)
     state: str = Field(default="All India", max_length=80)
     category: str = Field(default="Technology", max_length=80)
+    api_key: str | None = Field(default=None, min_length=10, max_length=200)
+    model: str | None = Field(default=None, max_length=80)
+
+
+class TestGeminiRequest(BaseModel):
+    api_key: str = Field(..., min_length=10, max_length=200)
+
+
+class TestGeminiResponse(BaseModel):
+    connected: bool
+    model: str | None = None
+    message: str
 
 
 class VisionCard(BaseModel):

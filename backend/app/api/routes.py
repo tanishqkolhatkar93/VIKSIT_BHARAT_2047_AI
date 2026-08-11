@@ -13,10 +13,12 @@ from app.schemas import (
     CreateCardRequest,
     PublicCard,
     PulseSummary,
+    TestGeminiRequest,
+    TestGeminiResponse,
     VisionRequest,
     VisionResponse,
 )
-from app.services.cache import MemoryCache
+from app.services.cache import MemoryCache, PostgresCache
 from app.services.cards import CardStore
 from app.services.pulse import PulseStore
 from app.services.rate_limit import RateLimiter
@@ -27,10 +29,14 @@ settings = get_settings()
 router = APIRouter(prefix="/api/v1")
 public_router = APIRouter()
 retriever = KnowledgeRetriever()
-cache = MemoryCache(settings.cache_ttl_seconds)
-rate_limiter = RateLimiter(settings.rate_limit_per_hour)
+rate_limiter = RateLimiter(settings.rate_limit_per_day, window_seconds=86400)
 pulse_store = PulseStore(settings.database_url)
 card_store = CardStore(settings.database_url)
+
+if settings.database_url.startswith("postgres"):
+    cache = PostgresCache(settings.database_url, settings.cache_ttl_seconds)
+else:
+    cache = MemoryCache(settings.cache_ttl_seconds)
 
 
 def _base_url(request: Request) -> str:
@@ -59,6 +65,17 @@ def get_categories() -> list[str]:
     return CATEGORIES
 
 
+@router.post("/gemini/test", response_model=TestGeminiResponse)
+async def test_gemini(payload: TestGeminiRequest) -> TestGeminiResponse:
+    provider = build_provider(payload.api_key.strip(), settings.gemini_model)
+    result = await provider.test_connection()
+    return TestGeminiResponse(
+        connected=bool(result["connected"]),
+        model=result.get("model"),
+        message=str(result["message"]),
+    )
+
+
 @router.get("/pulse", response_model=PulseSummary)
 def get_pulse() -> PulseSummary:
     return PulseSummary(**pulse_store.summary())
@@ -75,10 +92,11 @@ async def create_vision(payload: VisionRequest, request: Request) -> VisionRespo
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Unsupported category.")
 
     client_key = request.client.host if request.client else "anonymous"
-    if not rate_limiter.allow(client_key):
+    user_api_key = (payload.api_key or "").strip()
+    if not user_api_key and not rate_limiter.allow(client_key):
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail="You've reached the free usage limit. Please try again later.",
+            detail="You've reached the daily free limit of 10 AI requests. Add your own Gemini API key to keep going, or try again tomorrow.",
         )
 
     question_hash = hash_question(payload.question, payload.language, payload.state, payload.category)
@@ -88,7 +106,8 @@ async def create_vision(payload: VisionRequest, request: Request) -> VisionRespo
         return VisionResponse(cached=True, question_hash=question_hash, **cached)
 
     documents = retriever.search(payload.question, payload.category, payload.state)
-    provider = build_provider(settings.gemini_api_key, settings.gemini_model)
+    active_model = (payload.model or "").strip() or settings.gemini_model
+    provider = build_provider(user_api_key or settings.gemini_api_key, active_model)
     try:
         ai_response = await provider.generate(
             question=payload.question,

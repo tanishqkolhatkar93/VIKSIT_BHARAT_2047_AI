@@ -40,15 +40,49 @@ export async function generateVision(payload: {
   language: string;
   state: string;
   category: string;
+  api_key?: string | null;
+  model?: string | null;
 }): Promise<VisionResponse> {
+  const body: Record<string, unknown> = {
+    name: payload.name,
+    question: payload.question,
+    language: payload.language,
+    state: payload.state,
+    category: payload.category,
+  };
+  if (payload.api_key) {
+    body.api_key = payload.api_key.trim();
+  }
+  if (payload.model) {
+    body.model = payload.model.trim();
+  }
   const response = await fetch(`${API_BASE_URL}/api/v1/vision`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
+    body: JSON.stringify(body)
   });
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
     throw new Error(body.detail ?? "India AI is taking a little longer than expected. Please try again.");
+  }
+  return response.json();
+}
+
+export type GeminiTestResult = {
+  connected: boolean;
+  model: string | null;
+  message: string;
+};
+
+export async function testGeminiKey(apiKey: string): Promise<GeminiTestResult> {
+  const response = await fetch(`${API_BASE_URL}/api/v1/gemini/test`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ api_key: apiKey.trim() }),
+  });
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    throw new Error(body.detail ?? "Could not reach the connection service. Please try again.");
   }
   return response.json();
 }

@@ -43,6 +43,72 @@ def test_vision_rejects_unsupported_language():
     assert response.status_code == 400
 
 
+def test_vision_with_custom_api_key_bypasses_shared_quota(monkeypatch):
+    from app.api import routes
+    from app.schemas import VisionCard, VisionPayload
+
+    class StubProvider:
+        async def generate(self, question, language, state, category, documents):
+            return VisionPayload(
+                vision="stub vision",
+                opportunities=["a"],
+                role_of_ai="r",
+                role_of_technology="t",
+                potential_impact="i",
+                challenges=["c"],
+                action_plan=["p"],
+                summary_2047="s",
+                fact_scenario_note="n",
+                card=VisionCard(theme="Education", beneficiaries=["b"], technology=["x"], impact="y", quote="q"),
+            )
+
+    monkeypatch.setattr(routes, "build_provider", lambda api_key, model: StubProvider())
+    routes.rate_limiter._requests.clear()
+    for _ in range(50):
+        routes.rate_limiter.allow("127.0.0.1")
+    response = client.post(
+        "/api/v1/vision",
+        json={
+            "name": "Aarav Sharma",
+            "question": "How can India build better schools by 2047?",
+            "language": "en",
+            "state": "All India",
+            "category": "Education",
+            "api_key": "AIzaSyDummyKeyForTestingPurposeOnly",
+        },
+    )
+    assert response.status_code == 200
+    assert response.json()["response"]["card"]["theme"] == "Education"
+
+
+def test_gemini_test_endpoint_validates_key(monkeypatch):
+    from app.api import routes
+
+    class StubProvider:
+        async def test_connection(self):
+            return {"connected": True, "model": "gemini-2.5-flash", "message": "API key is valid and connected."}
+
+    monkeypatch.setattr(routes, "build_provider", lambda api_key, model: StubProvider())
+    response = client.post("/api/v1/gemini/test", json={"api_key": "AIzaSyDummyKeyForTestingPurposeOnly"})
+    assert response.status_code == 200
+    body = response.json()
+    assert body["connected"] is True
+    assert body["model"] == "gemini-2.5-flash"
+
+
+def test_gemini_test_endpoint_rejects_invalid_key(monkeypatch):
+    from app.api import routes
+
+    class StubProvider:
+        async def test_connection(self):
+            return {"connected": False, "message": "Invalid API key."}
+
+    monkeypatch.setattr(routes, "build_provider", lambda api_key, model: StubProvider())
+    response = client.post("/api/v1/gemini/test", json={"api_key": "AIzaSyDummyKeyForTestingPurposeOnly"})
+    assert response.status_code == 200
+    assert response.json()["connected"] is False
+
+
 def _png_b64() -> str:
     import base64
 

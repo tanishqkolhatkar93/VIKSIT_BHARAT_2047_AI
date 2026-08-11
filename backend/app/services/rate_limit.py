@@ -3,7 +3,7 @@ from time import time
 
 
 class RateLimiter:
-    def __init__(self, limit: int, window_seconds: int = 3600) -> None:
+    def __init__(self, limit: int, window_seconds: int = 86400) -> None:
         self.limit = limit
         self.window_seconds = window_seconds
         self._requests: dict[str, deque[float]] = defaultdict(deque)
