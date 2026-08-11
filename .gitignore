@@ -17,3 +17,7 @@ __pycache__/
 .DS_Store
 backend/data/
 
+# Large RAG source files (over GitHub's 50 MB recommendation).
+# Re-download and run backend/scripts/ingest_rag_data.py to regenerate the corpus.
+RAG_Data/Ease-of-Doing-Research-and-Development-in-India.pdf
+
