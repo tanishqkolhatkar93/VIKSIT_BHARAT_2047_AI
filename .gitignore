@@ -21,3 +21,5 @@ backend/data/
 # Re-download and run backend/scripts/ingest_rag_data.py to regenerate the corpus.
 RAG_Data/Ease-of-Doing-Research-and-Development-in-India.pdf
 
+
+frontend/tsconfig.tsbuildinfo
