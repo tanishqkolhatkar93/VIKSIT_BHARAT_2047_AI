@@ -10,7 +10,9 @@ from app.core.config import get_settings
 from app.core.constants import CATEGORIES, LANGUAGES, STATES
 from app.rag.retriever import KnowledgeRetriever
 from app.schemas import (
+    AnalyticsSummary,
     CreateCardRequest,
+    PageViewRequest,
     PublicCard,
     PulseSummary,
     TestGeminiRequest,
@@ -20,6 +22,7 @@ from app.schemas import (
 )
 from app.services.cache import MemoryCache, PostgresCache
 from app.services.cards import CardStore
+from app.services.page_views import PageViewStore
 from app.services.pulse import PulseStore
 from app.services.rate_limit import RateLimiter
 from app.utils.hash import hash_question
@@ -32,6 +35,7 @@ retriever = KnowledgeRetriever()
 rate_limiter = RateLimiter(settings.rate_limit_per_day, window_seconds=86400)
 pulse_store = PulseStore(settings.database_url)
 card_store = CardStore(settings.database_url)
+page_view_store = PageViewStore(settings.database_url)
 
 if settings.database_url.startswith("postgres"):
     cache = PostgresCache(settings.database_url, settings.cache_ttl_seconds)
@@ -79,6 +83,24 @@ async def test_gemini(payload: TestGeminiRequest) -> TestGeminiResponse:
 @router.get("/pulse", response_model=PulseSummary)
 def get_pulse() -> PulseSummary:
     return PulseSummary(**pulse_store.summary())
+
+
+@router.post("/analytics", status_code=status.HTTP_204_NO_CONTENT)
+def record_page_view(payload: PageViewRequest) -> Response:
+    page_view_store.record(visitor_id=payload.visitor_id.strip(), page=payload.page)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.get("/analytics", response_model=AnalyticsSummary)
+def get_analytics() -> AnalyticsSummary:
+    summary = page_view_store.summary()
+    return AnalyticsSummary(
+        total_views=summary["total_views"],
+        unique_visitors=summary["unique_visitors"],
+        visits_today=summary["visits_today"],
+        total_visions=pulse_store.count(),
+        total_cards=card_store.count(),
+    )
 
 
 @router.post("/vision", response_model=VisionResponse)

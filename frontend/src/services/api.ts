@@ -74,6 +74,52 @@ export type GeminiTestResult = {
   message: string;
 };
 
+export type AnalyticsSummary = {
+  total_views: number;
+  unique_visitors: number;
+  visits_today: number;
+  total_visions: number;
+  total_cards: number;
+};
+
+export function getVisitorId(): string {
+  let id = "";
+  try {
+    id = localStorage.getItem("visitor_id") ?? "";
+  } catch {
+    id = "";
+  }
+  if (!id) {
+    id = crypto.randomUUID ? crypto.randomUUID() : `v-${Date.now()}-${Math.random().toString(36).slice(2, 12)}`;
+    try {
+      localStorage.setItem("visitor_id", id);
+    } catch {
+      // storage unavailable — keep ephemeral id
+    }
+  }
+  return id;
+}
+
+export async function recordPageView(page: string = "/"): Promise<void> {
+  try {
+    await fetch(`${API_BASE_URL}/api/v1/analytics`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ visitor_id: getVisitorId(), page }),
+    });
+  } catch {
+    // analytics is best-effort; never block the app
+  }
+}
+
+export async function getAnalytics(): Promise<AnalyticsSummary> {
+  const response = await fetch(`${API_BASE_URL}/api/v1/analytics`);
+  if (!response.ok) {
+    throw new Error("Failed to load analytics.");
+  }
+  return response.json();
+}
+
 export async function testGeminiKey(apiKey: string): Promise<GeminiTestResult> {
   const response = await fetch(`${API_BASE_URL}/api/v1/gemini/test`, {
     method: "POST",

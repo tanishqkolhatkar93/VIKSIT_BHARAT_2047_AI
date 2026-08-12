@@ -30,6 +30,19 @@ class TestGeminiResponse(BaseModel):
     message: str
 
 
+class PageViewRequest(BaseModel):
+    visitor_id: str = Field(..., min_length=8, max_length=200)
+    page: str = Field(default="/", max_length=200)
+
+
+class AnalyticsSummary(BaseModel):
+    total_views: int
+    unique_visitors: int
+    visits_today: int
+    total_visions: int
+    total_cards: int
+
+
 class VisionCard(BaseModel):
     theme: str
     beneficiaries: list[str]

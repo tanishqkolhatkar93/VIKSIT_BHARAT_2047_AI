@@ -77,6 +77,9 @@ class PulseStore:
                 return [(row[0], row[1], row[2]) for row in cursor.fetchall()]
         return []
 
+    def count(self) -> int:
+        return len(self._fetch_all())
+
     def record(self, category: str, state: str, language: str) -> None:
         if self._memory is not None:
             self._memory.append({"category": category, "state": state, "language": language})

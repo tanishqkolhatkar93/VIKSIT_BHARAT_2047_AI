@@ -132,6 +132,22 @@ class CardStore:
                 payload,
             )
 
+    def count(self) -> int:
+        if self._memory is not None:
+            return len(self._memory)
+        if self._sqlite is not None:
+            with self._lock:
+                row = self._sqlite.execute("SELECT COUNT(*) FROM vision_cards").fetchone()
+            return int(row[0]) if row else 0
+        if self._postgres_url is not None:
+            import psycopg
+
+            with psycopg.connect(self._postgres_url) as conn, conn.cursor() as cursor:
+                cursor.execute("SELECT COUNT(*) FROM vision_cards")
+                row = cursor.fetchone()
+            return int(row[0]) if row else 0
+        return 0
+
     def get(self, card_id: str) -> dict[str, Any] | None:
         if self._memory is not None:
             raw = self._memory.get(card_id)

@@ -68,3 +68,11 @@ export type PublicCard = {
   image_url: string;
 };
 
+export type AnalyticsSummary = {
+  total_views: number;
+  unique_visitors: number;
+  visits_today: number;
+  total_visions: number;
+  total_cards: number;
+};
+

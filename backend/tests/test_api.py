@@ -109,6 +109,23 @@ def test_gemini_test_endpoint_rejects_invalid_key(monkeypatch):
     assert response.json()["connected"] is False
 
 
+def test_analytics_records_page_views_and_summarizes():
+    client.post("/api/v1/analytics", json={"visitor_id": "visitor-alpha", "page": "/"})
+    client.post("/api/v1/analytics", json={"visitor_id": "visitor-alpha", "page": "/"})
+    client.post("/api/v1/analytics", json={"visitor_id": "visitor-bravo", "page": "/ask"})
+
+    summary = client.get("/api/v1/analytics").json()
+    assert summary["total_views"] >= 3
+    assert summary["unique_visitors"] >= 2
+    assert isinstance(summary["visits_today"], int)
+    assert isinstance(summary["total_visions"], int)
+    assert isinstance(summary["total_cards"], int)
+
+
+def test_analytics_rejects_short_visitor_id():
+    assert client.post("/api/v1/analytics", json={"visitor_id": "abc", "page": "/"}).status_code == 422
+
+
 def _png_b64() -> str:
     import base64
 

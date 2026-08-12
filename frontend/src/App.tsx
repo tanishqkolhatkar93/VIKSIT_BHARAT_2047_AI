@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { KeyRound as KeyRoundIcon } from "lucide-react";
 import { AIResponse } from "./components/AIResponse";
+import { AnalyticsDashboard } from "./components/AnalyticsDashboard";
 import { Footer } from "./components/Footer";
 import { GeminiConnectModal, type ConnectionStatus } from "./components/GeminiConnectModal";
 import { Hero } from "./components/Hero";
@@ -9,7 +10,7 @@ import { PulseDashboard } from "./components/PulseDashboard";
 import { VisionCard } from "./components/VisionCard";
 import { VisionInput } from "./components/VisionInput";
 import { useSpeech } from "./hooks/useSpeech";
-import { generateVision, getPulse } from "./services/api";
+import { generateVision, getAnalytics, getPulse, recordPageView, type AnalyticsSummary } from "./services/api";
 import type { PulseSummary, VisionResponse } from "./types/api";
 import { getDictionary, getSavedLanguage, type LanguageCode } from "./utils/i18n";
 
@@ -49,6 +50,7 @@ export default function App() {
   const [geminiOpen, setGeminiOpen] = useState(false);
   const [result, setResult] = useState<VisionResponse | null>(null);
   const [pulse, setPulse] = useState<PulseSummary | null>(null);
+  const [analytics, setAnalytics] = useState<AnalyticsSummary | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [suggestGemini, setSuggestGemini] = useState(false);
@@ -69,6 +71,13 @@ export default function App() {
     getPulse()
       .then(setPulse)
       .catch(() => setPulse(null));
+  }, []);
+
+  useEffect(() => {
+    recordPageView(window.location.pathname);
+    getAnalytics()
+      .then(setAnalytics)
+      .catch(() => setAnalytics(null));
   }, []);
 
   function saveKey(key: string, model: string) {
@@ -172,6 +181,7 @@ export default function App() {
         </>
       ) : null}
       <PulseDashboard pulse={pulse} t={t} />
+      <AnalyticsDashboard analytics={analytics} t={t} />
       <Footer t={t} />
       {geminiOpen ? (
         <GeminiConnectModal

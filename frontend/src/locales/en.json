@@ -92,5 +92,12 @@
   "geminiRemove": "Remove Key",
   "geminiUseMyKey": "Use My Key",
   "geminiUseMyKeyDesc": "Switch between the application default API and your personal key.",
-  "geminiSuggestBtn": "Connect Your Own Gemini API Key"
+  "geminiSuggestBtn": "Connect Your Own Gemini API Key",
+  "analyticsTitle": "App Analytics",
+  "analyticsSubtitle": "Live usage across the platform",
+  "analyticsVisits": "Total visits",
+  "analyticsVisitors": "Unique visitors",
+  "analyticsVisions": "Visions generated",
+  "analyticsCards": "Cards shared",
+  "analyticsToday": "Visits today"
 }
